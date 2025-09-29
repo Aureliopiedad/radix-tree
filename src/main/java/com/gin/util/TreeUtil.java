@@ -6,7 +6,8 @@ import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 
 public class TreeUtil {
-    private TreeUtil() {}
+    private TreeUtil() {
+    }
 
     @Data
     @NoArgsConstructor
@@ -22,7 +23,7 @@ public class TreeUtil {
         int max = Math.min(a.length(), b.length());
 
         while (i < max && a.charAt(i) == b.charAt(i)) {
-            i ++;
+            i++;
         }
 
         return i;
@@ -38,19 +39,13 @@ public class TreeUtil {
     @SneakyThrows
     public static FindWildcard findWildcard(String path) {
         // Find start
-        for (int start = 0; start < path.length(); start ++) {
+        for (int start = 0; start < path.length(); start++) {
             char c = path.charAt(start);
 
             // A wildcard starts with '{' (param)
             if (c == '{') {
-                // Find end and check for invalid characters
-                for (int end = start + 1; end < path.length(); end ++) {
-                    char c1 = path.charAt(end);
-                    if (c1 == '}') {
-                        // 只有}且后一位为/的符合标准
-                        // 返回的结果把}后面的/也带上
-                        return new FindWildcard(path.substring(start, end + 2), start, end + 1 < path.length() && path.charAt(end + 1) == '/');
-                    }
+                if (path.substring(start).startsWith("{id}/")) {
+                    return new FindWildcard("{id}/", start, true);
                 }
             }
         }
