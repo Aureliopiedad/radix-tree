@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
+
 @Slf4j
 public class NodeTest {
     @Test
@@ -171,5 +173,45 @@ public class NodeTest {
         Assert.assertEquals("{id/test/", root.getChildren().get(1).getPath());
 
         Assert.assertEquals("/i", root.getChildren().get(0).getIndices());
+    }
+
+    @Test
+    public void getValueTest() {
+        Node root = new Node();
+        root.addRoute("/{id}/test/");
+        root.addRoute("/api/test/{id}/");
+        root.addRoute("/{id}/aaa/");
+        root.addRoute("/{id}/{id}/");
+        root.addRoute("/api/te/{id}/");
+        root.addRoute("/{id/test/");
+        root.addRoute("/apiii/test/");
+
+        Assert.assertEquals(root.getValue("/123/test/", new ArrayList<>()).getAssetId(), "api./{id}/test/");
+        Assert.assertEquals(root.getValue("/api/test/123/", new ArrayList<>()).getAssetId(), "api./api/test/{id}/");
+        Assert.assertEquals(root.getValue("/123/aaa/", new ArrayList<>()).getAssetId(), "api./{id}/aaa/");
+        Assert.assertEquals(root.getValue("/123/123/", new ArrayList<>()).getAssetId(), "api./{id}/{id}/");
+        Assert.assertEquals(root.getValue("/{id/test/", new ArrayList<>()).getAssetId(), "api./{id/test/");
+        Assert.assertEquals(root.getValue("/apiii/test/", new ArrayList<>()).getAssetId(), "api./apiii/test/");
+
+        root.addRoute("/test/test/test/");
+        root.addRoute("/test/test/123/");
+        Assert.assertEquals(root.getValue("/test/test/", new ArrayList<>()).getAssetId(), "api./{id}/test/");
+
+        root.addRoute("/test/test/{id}/111/");
+        root.addRoute("/test/test/123/222/");
+
+        root.addRoute("/test/test/124/{id}/");
+        root.addRoute("/test/test/124/222/");
+        Assert.assertEquals(root.getValue("/test/test/123/111/", new ArrayList<>()).getAssetId(), "api./test/test/{id}/111/");
+        Assert.assertEquals(root.getValue("/test/test/124/22/", new ArrayList<>()).getAssetId(), "api./test/test/124/{id}/");
+    }
+
+    @Test
+    public void removeTest() {
+        Node root = new Node();
+        root.addRoute("/test/test/");
+        root.addRoute("/test/api");
+
+
     }
 }
