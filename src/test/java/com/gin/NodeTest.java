@@ -36,6 +36,7 @@ public class NodeTest {
         Assert.assertEquals(1, child1.getChildren().size());
         Assert.assertNull(child1.getAssetId());
         Assert.assertEquals("t", child1.getIndices());
+        Assert.assertEquals("/api/", child1.getParent().getPath());
 
         Node child2 = child1.getChildren().get(0);
         Assert.assertEquals("test/", child2.getPath());
@@ -43,6 +44,7 @@ public class NodeTest {
         Assert.assertEquals(0, child2.getChildren().size());
         Assert.assertEquals("api./api/{id}/test/", child2.getAssetId());
         Assert.assertEquals("", child2.getIndices());
+        Assert.assertEquals("{id}/", child2.getParent().getPath());
     }
 
     @Test
@@ -62,6 +64,7 @@ public class NodeTest {
         Assert.assertEquals(0, child1.getChildren().size());
         Assert.assertEquals("", child1.getIndices());
         Assert.assertEquals("api./api/{id}/", child1.getAssetId());
+        Assert.assertEquals("/api/", child1.getParent().getPath());
     }
 
     @Test
@@ -81,6 +84,7 @@ public class NodeTest {
         Assert.assertEquals(1, child1.getChildren().size());
         Assert.assertEquals("t", child1.getIndices());
         Assert.assertNull(child1.getAssetId());
+        Assert.assertEquals("/", child1.getParent().getPath());
 
         Node child2 = child1.getChildren().get(0);
         Assert.assertEquals("test/", child2.getPath());
@@ -88,6 +92,7 @@ public class NodeTest {
         Assert.assertEquals(0, child2.getChildren().size());
         Assert.assertEquals("", child2.getIndices());
         Assert.assertEquals("api./{id}/test/", child2.getAssetId());
+        Assert.assertEquals("{id}/", child2.getParent().getPath());
     }
 
     @Test
@@ -110,6 +115,7 @@ public class NodeTest {
         Assert.assertFalse(child1.isWildChild());
         Assert.assertEquals("api./api/test/{id}/", child1.getAssetId());
         Assert.assertEquals("", child1.getIndices());
+        Assert.assertEquals("/api/test/", child1.getParent().getPath());
     }
 
     @Test
@@ -134,36 +140,42 @@ public class NodeTest {
         Assert.assertTrue(child1.isWildChild());
         Assert.assertNull(child1.getAssetId());
         Assert.assertEquals("", child1.getIndices());
+        Assert.assertEquals("/", child1.getParent().getPath());
 
         Node child2 = child1.getChildren().get(0);
         Assert.assertEquals("{id}/", child2.getPath());
         Assert.assertEquals(NodeType.PARAM, child2.getNType());
         Assert.assertEquals(0, child2.getChildren().size());
         Assert.assertEquals("api./api/test/{id}/", child2.getAssetId());
+        Assert.assertEquals("api/test/", child2.getParent().getPath());
 
         Node child3 = root.getChildren().get(1);
         Assert.assertEquals("{id}/", child3.getPath());
         Assert.assertEquals("ta", child3.getIndices());
         Assert.assertEquals(NodeType.PARAM, child3.getNType());
         Assert.assertEquals(3, child3.getChildren().size());
+        Assert.assertEquals("/", child3.getParent().getPath());
 
         Node child4 = child3.getChildren().get(0);
         Assert.assertEquals("test/", child4.getPath());
         Assert.assertEquals(NodeType.STATIC, child4.getNType());
         Assert.assertEquals(0, child4.getChildren().size());
         Assert.assertEquals("api./{id}/test/", child4.getAssetId());
+        Assert.assertEquals("{id}/", child4.getParent().getPath());
 
         Node child5 = child3.getChildren().get(1);
         Assert.assertEquals("aaa/", child5.getPath());
         Assert.assertEquals(NodeType.STATIC, child5.getNType());
         Assert.assertEquals(0, child5.getChildren().size());
         Assert.assertEquals("api./{id}/aaa/", child5.getAssetId());
+        Assert.assertEquals("{id}/", child5.getParent().getPath());
 
         Node child6 = child3.getChildren().get(2);
         Assert.assertEquals("{id}/", child6.getPath());
         Assert.assertEquals(NodeType.PARAM, child6.getNType());
         Assert.assertEquals(0, child6.getChildren().size());
         Assert.assertEquals("api./{id}/{id}/", child6.getAssetId());
+        Assert.assertEquals("{id}/", child6.getParent().getPath());
 
         root.addRoute("/api/te/{id}/");
         root.addRoute("/{id/test/");
@@ -209,9 +221,36 @@ public class NodeTest {
     @Test
     public void removeTest() {
         Node root = new Node();
-        root.addRoute("/test/test/");
-        root.addRoute("/test/api");
+        root.addRoute("/{id}/test/");
+        root.addRoute("/{id}/{id}/");
 
+        Assert.assertEquals(root.getValue("/test/test/", new ArrayList<>()).getAssetId(), "api./{id}/test/");
+        root.remove("/{id}/test/");
+        Assert.assertEquals(root.getValue("/test/test/", new ArrayList<>()).getAssetId(), "api./{id}/{id}/");
+        root.remove("/{id}/{id}/");
+        Assert.assertNull(root.getValue("/test/test/", new ArrayList<>()).getAssetId());
 
+        root.addRoute("/test/{id}/test/");
+        root.addRoute("/test/{id}/");
+        Assert.assertEquals(root.getValue("/test/111/test/", new ArrayList<>()).getAssetId(), "api./test/{id}/test/");
+        Assert.assertEquals(root.getValue("/test/111/", new ArrayList<>()).getAssetId(), "api./test/{id}/");
+        root.remove("/test/{id}/");
+        root.remove("/test/{id}/test/");
+
+        root.addRoute("/test/test/111/");
+        root.addRoute("/test/test/123/");
+        root.addRoute("/test/test/111/1/");
+        root.addRoute("/test/test/111/2/");
+        Assert.assertEquals("/test/test/1", root.getPath());
+        Assert.assertEquals(2, root.getChildren().size());
+        Assert.assertEquals("11/", root.getChildren().get(0).getPath());
+        Assert.assertEquals("23/", root.getChildren().get(1).getPath());
+        Assert.assertEquals("1/", root.getChildren().get(0).getChildren().get(0).getPath());
+        Assert.assertEquals("11/", root.getChildren().get(0).getChildren().get(0).getParent().getPath());
+        Assert.assertEquals("2/", root.getChildren().get(0).getChildren().get(1).getPath());
+        Assert.assertEquals("11/", root.getChildren().get(0).getChildren().get(0).getParent().getPath());
+        Assert.assertEquals(root.getValue("/test/test/111/", new ArrayList<>()).getAssetId(), "api./test/test/111/");
+        root.remove("/test/test/111/");
+        Assert.assertEquals("/test/test/1", root.getPath());
     }
 }
