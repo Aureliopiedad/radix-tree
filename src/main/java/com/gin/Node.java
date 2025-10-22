@@ -277,7 +277,7 @@ public class Node {
             for (int i = 0; i < n.getChildren().size(); i++) {
                 if (n.getChildren().get(i).getNType() != NodeType.PARAM && n.getChildren().get(i).getPath().charAt(0) == idxc) {
                     if (n.isWildChild()) {
-                        skippedNodes.add(new SkippedNode(prefix + path, new Node(n.getPath(), n.getNType(), null, n.getChildren().subList(n.getChildren().size() - 1, n.getChildren().size()), n.getAssetId()), 0));
+                        skippedNodes.add(new SkippedNode(prefix + path, new Node(n.getPath(), n.getNType(), null, n.getChildren().subList(n.getChildren().size() - 1, n.getChildren().size()), n.getAssetId())));
                     }
 
                     n = n.getChildren().get(i);
@@ -374,6 +374,8 @@ public class Node {
             this.getParent().getChildren().removeIf(node -> node.getPath().equals(this.getPath()));
             // 需要考虑剪枝，避免出现父节点不是资产，且没有子节点或一个非路径参数子节点的情况
             this.getParent().cut();
+            this.setPath(null);
+            this.setParent(null);
             return;
         }
 
