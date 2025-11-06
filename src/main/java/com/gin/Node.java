@@ -269,7 +269,7 @@ public class Node {
                     }
                 }
 
-                return n;
+                return null;
             }
 
             // 先检查一下子节点有没有静态url能匹配的
@@ -303,7 +303,7 @@ public class Node {
                 }
 
                 // 如果没有上一个节点可供回溯了，那就证明这个url没有匹配到任何东西
-                return n;
+                return null;
             }
 
             // 要么当前节点的子节点有路径参数节点，可以继续匹配路径参数
